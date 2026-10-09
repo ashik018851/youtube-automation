@@ -1,16 +1,37 @@
 
-name: YouTube Automation
+name: YouTube Shorts Generator
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 12 * * *"
+
+permissions:
+  contents: read
 
 jobs:
-  test:
+  generate:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
     steps:
-      - name: Test automation
+      - name: Get repository files
+        uses: actions/checkout@v4
+
+      - name: Install video tools
         run: |
-          echo "YouTube automation is running!"
-          date -u
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg espeak-ng fonts-noto-core
+
+      - name: Install Python packages
+        run: |
+          python -m pip install --upgrade pip
+
+      - name: Generate the Short
+        run: python generate.py
+
+      - name: Save video for download
+        uses: actions/upload-artifact@v4
+        with:
+          name: youtube-short
+          path: output/short.mp4
+          if-no-files-found: error
+          retention-days: 3
